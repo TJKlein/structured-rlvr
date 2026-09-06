@@ -34,29 +34,19 @@ The 128-prompt slice is 6.4% of the test set. It flattered A0 on greedy (35.2% v
 
 CoRPO and RAFT use the same ~4,000-rollout budget as A0. A curriculum-ordered A2 rerun (easy→hard, constant LR) scored 39/128 (**30.5%**) greedy and is not a win. An OPSA screen on the base greedy run is a skip: failures are as confident as passes on the lowest-20% token logprobs.
 
-[Fu et al. (2609.04172)](https://arxiv.org/abs/2609.04172) show that on-policy distillation is data-overfed: a handful of queries cover most training states, and content-light templates nearly match real problems, because the teacher supplies a dense token signal. Sparse IFStruct GRPO is the other side of that split — Nemotron’s messier states beat a clean generator on greedy. `scripts/run_a2_coverage.sh` retrains A2 on 16 `train__*` prompts that target the remaining error modes (schema dump, wrapper vs list, YAML fence, enums, extra keys, item count) for 300 steps. On-policy distillation itself is gated: only if `LFM2.5-1.2B-Instruct` is at least 3 points above cookbook GRPO on the official probe (`python -m ifstruct_rl.opd_gate`). After that, `scripts/run_sdpo.sh cookbook` and `scripts/run_sdpo.sh official` are two 100-step hybrid [SDPO](https://arxiv.org/abs/2601.20802)+GRPO ablations (λ=0.9): cheap cookbook rewards vs official exam rewards. The self-teacher gets a standing **mind the gap** list of leftover error modes (schema dump, wrapper vs list, extra keys, enums, item count, fences) plus a hint for the current attempt. After the 2,000-prompt eval, `python -m ifstruct_rl.error_modes` rewrites that list from the real leftover counts. 350M is below the scale where that self-teacher is known to help.
-
 Compact metrics: [`artifacts/ifstruct-lfm350/`](artifacts/ifstruct-lfm350/). Merged weights are not in git.
 
 ![Figure 1](artifacts/ifstruct-lfm350/exam.png)
 
 **Figure 1.** Official IFStruct pass, one seed. **a**, Greedy decode on the full 2,000-prompt split (bars) and pass@8 at T = 1 on the 128-prompt probe (circles). Cookbook GRPO and official-validator GRPO are highlighted. **b**, Full-set greedy pass split by output format.
 
-![Figure 2](artifacts/ifstruct-lfm350/train.png)
+![Figure 2](artifacts/ifstruct-lfm350/leftover.png)
 
-**Figure 2.** Training dynamics over 100 GRPO steps. **a**, Mean train-time reward (schema component for cookbook GRPO; official binary for official-validator GRPO). Thin traces are per-step means; thick traces are a 7-step moving average. **b**, Fraction of groups whose rewards have zero standard deviation.
+**Figure 2.** Leftover official error mentions on the same 2,000 greedy generations (a completion can contribute more than one). Cookbook GRPO almost wipes fence failures. Extra keys and list-vs-schema-dump remain — those are not what the three cheap train rewards look at.
 
-### Train checker vs exam
+![Figure 3](artifacts/ifstruct-lfm350/train.png)
 
-A generation is a **hack** if the cookbook combined reward is `> 0.8` and official `validate_response` still fails. Combined reward maxes at 3.5, so 0.8 is a soft bar — not a claim that the cookbook “passed.” Counts below are on the 128-prompt probe.
-
-| Run | Cookbook-high | Of those, official fail | Hack rate |
-|---|---:|---:|---:|
-| Base | 25 | 16 | **64%** |
-| Cookbook GRPO (A0) | 47 | 26 | **55%** |
-| Official-validator GRPO (A2) | 37 | 20 | 54% |
-
-More than half of A0 generations that would score well on the public train checker still fail the exam. Remaining errors are mostly missing required fields, wrapper vs bare-list shape, and extra keys — not forgotten fences. Recompute with `python -m ifstruct_rl.hack_rate`.
+**Figure 3.** Training dynamics over 100 GRPO steps. **a**, Mean train-time reward (schema component for cookbook GRPO; official binary for official-validator GRPO). Thin traces are per-step means; thick traces are a 7-step moving average. **b**, Fraction of groups whose rewards have zero standard deviation.
 
 ### Examples (greedy, same seed)
 
@@ -88,10 +78,6 @@ bash scripts/setup_gpu.sh
 bash scripts/run_baseline.sh   # 128-probe greedy + OPSA screen
 bash scripts/run_a0.sh         # cookbook GRPO
 bash scripts/run_a2.sh         # official-validator GRPO
-bash scripts/run_a2_coverage.sh  # 16-prompt coverage set, 300 steps
-bash scripts/run_sdpo.sh cookbook  # SDPO + cheap cookbook rewards
-bash scripts/run_sdpo.sh official  # SDPO + official exam rewards
-
 ```
 
 `HF_TOKEN` is only needed to download models and datasets.
