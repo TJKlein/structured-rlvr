@@ -39,6 +39,7 @@ hack-rate = "ifstruct_rl.hack_rate:main"
 train-a0 = "ifstruct_rl.train_a0:main"
 train-a2 = "ifstruct_rl.train_a2:main"
 train-sdpo = "ifstruct_rl.train_sdpo:main"
+error-modes = "ifstruct_rl.error_modes:main"
 train-raft = "ifstruct_rl.train_raft:main"
 opd-gate = "ifstruct_rl.opd_gate:main"
 

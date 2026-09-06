@@ -57,8 +57,7 @@ def test_teacher_prompt_appends_checker_block():
     out = build_teacher_prompts(prompts, feedback)
     assert out[0].startswith("User: emit JSON")
     assert "[IFStruct checker]" in out[0]
-    assert "expected array, got dict" in out[0]
-    assert "The attempt follows" in out[0]
+    assert "[Mind the gap]" in out[0]
 
 
 def test_cookbook_prompt_uses_cookbook_label():

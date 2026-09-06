@@ -18,6 +18,8 @@ from typing import Any
 
 import torch
 
+from ifstruct_rl.error_modes import attempt_hints, standing_announcement
+
 MAX_ERROR_CHARS = 400
 TEACHER_TAILS = {
     "official": (
@@ -65,6 +67,9 @@ def teacher_feedback_blocks(
                 block = "The checker accepted this attempt."
             else:
                 block = format_error_text(err)
+                hints = attempt_hints(err)
+                if hints:
+                    block = f"{block}\n{hints}"
                 if sib is not None:
                     demo = sib.strip()
                     if len(demo) > 800:
@@ -79,13 +84,22 @@ def build_teacher_prompts(
     feedback: list[str],
     *,
     recipe: str = "official",
+    standing: str | None = None,
 ) -> list[str]:
     if len(prompts) != len(feedback):
         raise ValueError("prompts and feedback length mismatch")
     if recipe not in TEACHER_TAILS:
         raise ValueError(f"unknown sdpo recipe {recipe}")
     tail = TEACHER_TAILS[recipe]
-    return [p.rstrip() + tail.format(feedback=f) for p, f in zip(prompts, feedback)]
+    gap = standing if standing is not None else standing_announcement()
+    out = []
+    for prompt, fb in zip(prompts, feedback):
+        out.append(
+            prompt.rstrip()
+            + f"\n\n[Mind the gap]\n{gap}\n"
+            + tail.format(feedback=fb)
+        )
+    return out
 
 
 def mix_advantages(
@@ -206,7 +220,12 @@ def sdpo_trainer_class():
                 completions=completions,
                 num_generations=g,
             )
-            teacher_prompts = build_teacher_prompts(prompts, feedback, recipe=recipe)
+            teacher_prompts = build_teacher_prompts(
+                prompts,
+                feedback,
+                recipe=recipe,
+                standing=self._sdpo_standing(recipe),
+            )
 
             unwrap = self.accelerator.unwrap_model(self.model)
             was_training = unwrap.training
@@ -250,6 +269,15 @@ def sdpo_trainer_class():
                 self.accelerator.gather(n_pass).nanmean().item()
             )
             return mixed
+
+        def _sdpo_standing(self, recipe: str) -> str:
+            from pathlib import Path
+
+            from ifstruct_rl.error_modes import load_catalog, standing_announcement
+
+            specific = Path(f"artifacts/mind_the_gap_{recipe}.json")
+            fallback = Path("artifacts/mind_the_gap.json")
+            return standing_announcement(load_catalog(specific if specific.exists() else fallback))
 
         def _sdpo_teacher_logps(self, model, teacher_prompts, completion_ids, completion_mask):
             tok = self.processing_class
