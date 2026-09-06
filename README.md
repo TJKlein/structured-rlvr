@@ -22,9 +22,13 @@ A0 follows the cookbook envelope: Nemotron structured-output prompts, three chea
 
 Compact metrics: [`artifacts/ifstruct-lfm350/`](artifacts/ifstruct-lfm350/). Merged weights are not in git.
 
-![Official IFStruct probe: greedy vs pass@8, JSON vs YAML](artifacts/ifstruct-lfm350/exam.png)
+![Figure 1](artifacts/ifstruct-lfm350/exam.png)
 
-![Train reward saturates; dead groups stay high](artifacts/ifstruct-lfm350/train.png)
+**Figure 1.** Official IFStruct pass on a 128-prompt probe (even seeds 0–254, one seed). **a**, Greedy decode (bars) and pass@8 at T = 1 (circles). Cookbook GRPO and official-validator GRPO are highlighted; CoRPO and RAFT share the same rollout budget. **b**, Greedy pass split by output format.
+
+![Figure 2](artifacts/ifstruct-lfm350/train.png)
+
+**Figure 2.** Training dynamics over 100 GRPO steps. **a**, Mean train-time reward (schema component for cookbook GRPO; official binary for official-validator GRPO). Thin traces are per-step means; thick traces are a 7-step moving average. **b**, Fraction of groups whose rewards have zero standard deviation.
 
 ### Train checker vs exam
 
