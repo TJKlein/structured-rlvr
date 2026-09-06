@@ -1,0 +1,85 @@
+{
+  "model": "runs/a2-lfm350-official-seed0-merged",
+  "n": 128,
+  "passed": 42,
+  "pass_rate": 0.328125,
+  "elapsed_s": 564.702245656983,
+  "mean_tokens": 372.578125,
+  "truncated_frac": 0.0,
+  "by_format": {
+    "json": {
+      "passed": 21,
+      "total": 61,
+      "pass_rate": 0.3442622950819672
+    },
+    "yaml": {
+      "passed": 21,
+      "total": 67,
+      "pass_rate": 0.31343283582089554
+    }
+  },
+  "top_errors": [
+    [
+      "required field missing",
+      571
+    ],
+    [
+      "expected string, got list",
+      9
+    ],
+    [
+      "extraneous field 'room_type'",
+      9
+    ],
+    [
+      "extraneous field 'requirements[].is_required'",
+      8
+    ],
+    [
+      "extraneous field 'requirements[].skill_name'",
+      8
+    ],
+    [
+      "extraneous field 'requirements[].years_required'",
+      8
+    ],
+    [
+      "extraneous field 'sample_text'",
+      7
+    ],
+    [
+      "extraneous field 'timestamp_present'",
+      7
+    ],
+    [
+      "extraneous field 'draft_label'",
+      7
+    ],
+    [
+      "extraneous field 'genre'",
+      7
+    ],
+    [
+      "extraneous field 'includes_parenthetical'",
+      7
+    ],
+    [
+      "extraneous field 'includes_voice_over'",
+      7
+    ],
+    [
+      "extraneous field 'location_type'",
+      7
+    ],
+    [
+      "extraneous field 'time_of_day'",
+      7
+    ],
+    [
+      "expected array, got dict",
+      6
+    ]
+  ],
+  "created_at": "2026-09-06T08:30:57.261913+00:00",
+  "note": "Expected pass_rate ~0.21 on full IFStruct; probe-128 may differ by a few points."
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "seed": 18,
+    "why": "JSON shape: A0 emits a bare array; base and A2 dump a JSON Schema wrapper",
+    "format": "json",
+    "entity_type": "test__escaping__customer_email_thread",
+    "prompt": "hey! thanks in advance for this, hopefully quick one. so I'm trying to put together some fake customer email threads... each email body should read like an actual complete message.",
+    "base": {"passed": false, "error": "expected array, got dict", "response": "```json { \"type\": \"array\", \"items\": [ { \"manager_looped_in\": true, \"thread_emails\": [...] } ] }"},
+    "a0": {"passed": true, "error": "ok", "response": "```json [ { \"manager_looped_in\": true, \"thread_emails\": [ { \"urgency_level\": \"low\", \"needs_reply\": false, \"body_text\": \"Hi, just checking in. The scheduled maintenance is due tomorrow.\" } ] } ]"},
+    "a2": {"passed": false, "error": "expected array, got dict", "response": "```json { \"type\": \"array\", \"items\": [ { \"manager_looped_in\": false, \"thread_emails\": [...] } ] }"}
+  },
+  {
+    "seed": 0,
+    "why": "YAML wrapper: A2 gets the bare list; A0 still wraps under chapters. A2 then fails an enum.",
+    "format": "yaml",
+    "entity_type": "test__escaping__short_story_chapter",
+    "prompt": "need some gothic suspense story chapters generated, dialogue-heavy. format is yaml, in a fenced code block. root should be a bare array — not wrapped under `chapters:`. count: 3-4 chapters.",
+    "base": {"passed": false, "error": "Expected bare list, got wrapped object with key 'chapters'", "response": "```yaml chapters: - chapter_title: \"The Weight of Silence\" ..."},
+    "a0": {"passed": false, "error": "Expected bare list, got wrapped object with key 'chapters'", "response": "```yaml chapters: - chapter_title: \"The Weight of Silence\" ..."},
+    "a2": {"passed": false, "error": "'reflective' not in allowed values ['first_person', 'close_third', 'omniscient', 'alternating']", "response": "```yaml - chapter_title: \"The Weight of Silence\" metadata: perspective: \"omniscient\" tone: \"reflective\" ..."}
+  },
+  {
+    "seed": 36,
+    "why": "YAML item count: base emits 1 batch; A0 and A2 both pass",
+    "format": "yaml",
+    "entity_type": "test__escaping__repro_steps_batch",
+    "prompt": "Generate 2-3 reproduction steps batches for a report generation workflow. Repro scripts should read like natural blocks of QA notes.",
+    "base": {"passed": false, "error": "array has 1 items, minimum is 2", "response": "```yaml repro_steps_batch: - qa_batch_label: \"UI rendering issues\" ..."},
+    "a0": {"passed": true, "error": "ok", "response": "```yaml repro_steps_batch: - qa_batch_label: \"UI rendering issues\" ..."},
+    "a2": {"passed": true, "error": "ok", "response": "```yaml repro_steps_batch: - qa_batch_label: \"UI Batch\" ..."}
+  }
+]

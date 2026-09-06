@@ -6,12 +6,21 @@
   "official_greedy_pass": {
     "base": {"passed": 27, "n": 128, "pass_rate": 0.2109375},
     "a0_cookbook_grpo": {"passed": 45, "n": 128, "pass_rate": 0.3515625},
+    "a2_official_grpo": {"passed": 42, "n": 128, "pass_rate": 0.328125},
     "corpo_r_min_2": {"passed": 39, "n": 128, "pass_rate": 0.3046875},
     "raft_r_min_2": {"passed": 20, "n": 128, "pass_rate": 0.15625}
   },
   "pass_at_8_temperature_1": {
-    "base": {"pass_at_1": 0.1318, "pass_at_k": 0.3281},
-    "a0_cookbook_grpo": {"pass_at_1": 0.2451, "pass_at_k": 0.4453}
+    "base": {"pass_at_1": 0.1318359375, "pass_at_k": 0.328125},
+    "a0_cookbook_grpo": {"pass_at_1": 0.2451171875, "pass_at_k": 0.4453125},
+    "a2_official_grpo": {"pass_at_1": 0.259765625, "pass_at_k": 0.4921875}
   },
-  "opsa_screen": "NOGO_SKIP_OPSA"
+  "hack_rate_cookbook_high_official_fail": {
+    "definition": "cookbook combined > 0.8 AND official validate_response fail",
+    "base": {"hack_n": 16, "cookbook_high_n": 25, "rate": 0.64},
+    "a0_cookbook_grpo": {"hack_n": 26, "cookbook_high_n": 47, "rate": 0.5531914893617021},
+    "a2_official_grpo": {"hack_n": 20, "cookbook_high_n": 37, "rate": 0.5405405405405406}
+  },
+  "opsa_screen": "NOGO_SKIP_OPSA",
+  "note": "A2 lost greedy to A0 (32.8% vs 35.2%) and won pass@8 (49.2% vs 44.5%). Matching the official checker on a held-out train__* generator did not beat Liquid's looser checker + Nemotron on greedy. Full 2000-prompt greedy table pending."
 }

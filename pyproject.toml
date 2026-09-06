@@ -26,6 +26,7 @@ train = [
 eval-baseline = "ifstruct_rl.eval_baseline:main"
 eval-passk = "ifstruct_rl.eval_passk:main"
 opsa-screen = "ifstruct_rl.opsa_screen:main"
+hack-rate = "ifstruct_rl.hack_rate:main"
 train-a0 = "ifstruct_rl.train_a0:main"
 train-a2 = "ifstruct_rl.train_a2:main"
 train-raft = "ifstruct_rl.train_raft:main"
