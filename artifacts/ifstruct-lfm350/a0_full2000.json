@@ -1,0 +1,57 @@
+{
+  "arm": "a0_cookbook",
+  "model": "runs/a0-lfm350-cookbook-seed0-merged",
+  "n": 2000,
+  "passed": 593,
+  "pass_rate": 0.2965,
+  "by_format": {
+    "json": {
+      "passed": 310,
+      "total": 1000,
+      "pass_rate": 0.31
+    },
+    "yaml": {
+      "passed": 283,
+      "total": 1000,
+      "pass_rate": 0.283
+    }
+  },
+  "mean_tokens": 408.361,
+  "truncated_frac": 0.001,
+  "top_errors": [
+    [
+      "required field missing",
+      8015
+    ],
+    [
+      "expected array, got dict",
+      207
+    ],
+    [
+      "expected boolean, got str",
+      81
+    ],
+    [
+      "expected object, got str",
+      72
+    ],
+    [
+      "6 is greater than maximum 5",
+      68
+    ],
+    [
+      "extraneous field 'speaker_labels'",
+      59
+    ],
+    [
+      "extraneous field 'title'",
+      56
+    ],
+    [
+      "extraneous field 'path'",
+      54
+    ]
+  ],
+  "created_at": "2026-09-06T14:34:44.185360+00:00",
+  "decoder": "HF generate greedy (do_sample=False, max_new_tokens=2048)"
+}

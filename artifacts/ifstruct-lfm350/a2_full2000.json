@@ -1,0 +1,57 @@
+{
+  "arm": "a2_official",
+  "model": "runs/a2-lfm350-official-seed0-merged",
+  "n": 2000,
+  "passed": 613,
+  "pass_rate": 0.3065,
+  "by_format": {
+    "json": {
+      "passed": 322,
+      "total": 1000,
+      "pass_rate": 0.322
+    },
+    "yaml": {
+      "passed": 291,
+      "total": 1000,
+      "pass_rate": 0.291
+    }
+  },
+  "mean_tokens": 382.0585,
+  "truncated_frac": 0.0015,
+  "top_errors": [
+    [
+      "required field missing",
+      8592
+    ],
+    [
+      "extraneous field 'notes'",
+      155
+    ],
+    [
+      "extraneous field 'constraints'",
+      137
+    ],
+    [
+      "extraneous field 'path'",
+      132
+    ],
+    [
+      "extraneous field 'type'",
+      128
+    ],
+    [
+      "expected string, got list",
+      103
+    ],
+    [
+      "expected array, got dict",
+      88
+    ],
+    [
+      "Unclosed code block",
+      84
+    ]
+  ],
+  "created_at": "2026-09-06T17:11:45.789989+00:00",
+  "decoder": "HF generate greedy (do_sample=False, max_new_tokens=2048)"
+}

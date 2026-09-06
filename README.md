@@ -2,11 +2,27 @@
 
 Short reinforcement-learning-from-verifier-rewards (RLVR) recipes for **structured output**. The first experiment is [IFStruct](https://github.com/Liquid4All/ifstruct) instruction-following on [`LiquidAI/LFM2.5-350M`](https://huggingface.co/LiquidAI/LFM2.5-350M).
 
-**Result.** Liquid’s public 100-step [GRPO cookbook](https://huggingface.co/blog/grpo-with-trl-ifstruct) trains a looser checker than official IFStruct `validate_response`. Matching the official checker on a held-out generator did not beat that cookbook on greedy decode, but it did raise pass@8.
+**Result.** Liquid’s public 100-step [GRPO cookbook](https://huggingface.co/blog/grpo-with-trl-ifstruct) trains a looser checker than official IFStruct `validate_response`. On the full 2,000-prompt official greedy exam, matching that checker on a held-out generator was about even with the cookbook (613/2000 vs 593/2000). That is 20 prompts, one seed, and both the data mix and the train rewards changed, so it is not a method win.
 
 ## Results (LFM2.5-350M, 1 seed)
 
-Every number below uses official `validate_response`. Greedy decode unless noted. The public probe is 128 even seeds `0..254` (6.4% of the 2,000-row test set). Treat the probe as directional; a full-set greedy table will replace it when it lands.
+Every number below uses official `validate_response`. Greedy decode via HF `generate` (`do_sample=False`, `max_new_tokens=2048`).
+
+### Official greedy, full 2,000 prompts
+
+| Run | Official greedy | JSON | YAML |
+|---|---:|---:|---:|
+| Base `LFM2.5-350M` | 417/2000 (**20.8%**) | 16.5% | 25.2% |
+| Cookbook GRPO (A0) | 593/2000 (**29.6%**) | 31.0% | 28.3% |
+| Official-validator GRPO (A2) | 613/2000 (**30.6%**) | 32.2% | 29.1% |
+
+A0 follows the cookbook envelope: Nemotron structured-output prompts, three cheap train rewards, official exam at test. A2 keeps the same LoRA / GRPO setup (r=16, G=8, 100 steps, T=1.1, β=0.01) and swaps in official-shaped train rewards plus a held-out `train__*` prompt generator. YAML barely moved (~25% → 28–29%); almost all of the lift is JSON. Remaining A0 failures are mostly missing required fields, extra keys, and list-vs-schema-dump shape — not forgotten fences.
+
+A0’s 29.6% is close to Liquid’s published 29.7%, but the decoder is different (HF `generate` vs llama.cpp), so do not read this as a rematch of the cookbook table.
+
+### Probe (128 even seeds `0..254`) — pass@8 and other trainers
+
+The 128-prompt slice is 6.4% of the test set. It flattered A0 on greedy (35.2% vs 32.8%) relative to the full set (29.6% vs 30.6%). Use it for pass@8, CoRPO, and RAFT, not as the A0 vs A2 greedy ranking.
 
 | Run | Official greedy | JSON | YAML | pass@8 (T=1.0) |
 |---|---:|---:|---:|---:|
@@ -16,7 +32,7 @@ Every number below uses official `validate_response`. Greedy decode unless noted
 | CoRPO (`R_min=2.0`) | 39/128 (**30.5%**) | 27.9% | 32.8% | — |
 | RAFT (filter then SFT) | 20/128 (**15.6%**) | 26.2% | 6.0% | — |
 
-A0 follows the cookbook envelope: Nemotron structured-output prompts, three cheap train rewards, official exam at test. A2 keeps the same LoRA / GRPO setup (r=16, G=8, 100 steps, T=1.1, β=0.01) and swaps in official-shaped train rewards plus a held-out `train__*` prompt generator. CoRPO and RAFT use the same ~4,000-rollout budget as A0. A curriculum-ordered A2 rerun (easy→hard, constant LR) scored 39/128 (**30.5%**) greedy and is not a win. An OPSA screen on the base greedy run is a skip: failures are as confident as passes on the lowest-20% token logprobs.
+CoRPO and RAFT use the same ~4,000-rollout budget as A0. A curriculum-ordered A2 rerun (easy→hard, constant LR) scored 39/128 (**30.5%**) greedy and is not a win. An OPSA screen on the base greedy run is a skip: failures are as confident as passes on the lowest-20% token logprobs.
 
 [Fu et al. (2609.04172)](https://arxiv.org/abs/2609.04172) show that on-policy distillation is data-overfed: a handful of queries cover most training states, and content-light templates nearly match real problems, because the teacher supplies a dense token signal. Sparse IFStruct GRPO is the other side of that split — Nemotron’s messier states beat a clean generator on greedy. `scripts/run_a2_coverage.sh` retrains A2 on 16 `train__*` prompts that target the remaining error modes (schema dump, wrapper vs list, YAML fence, enums, extra keys, item count) for 300 steps. On-policy distillation itself is gated: only if `LFM2.5-1.2B-Instruct` is at least 3 points above cookbook GRPO on the official probe (`python -m ifstruct_rl.opd_gate`). After that, `scripts/run_sdpo.sh cookbook` and `scripts/run_sdpo.sh official` are two 100-step hybrid [SDPO](https://arxiv.org/abs/2601.20802)+GRPO ablations (λ=0.9): cheap cookbook rewards vs official exam rewards. The self-teacher gets a standing **mind the gap** list of leftover error modes (schema dump, wrapper vs list, extra keys, enums, item count, fences) plus a hint for the current attempt. After the 2,000-prompt eval, `python -m ifstruct_rl.error_modes` rewrites that list from the real leftover counts. 350M is below the scale where that self-teacher is known to help.
 
@@ -24,7 +40,7 @@ Compact metrics: [`artifacts/ifstruct-lfm350/`](artifacts/ifstruct-lfm350/). Mer
 
 ![Figure 1](artifacts/ifstruct-lfm350/exam.png)
 
-**Figure 1.** Official IFStruct pass on a 128-prompt probe (even seeds 0–254, one seed). **a**, Greedy decode (bars) and pass@8 at T = 1 (circles). Cookbook GRPO and official-validator GRPO are highlighted; CoRPO and RAFT share the same rollout budget. **b**, Greedy pass split by output format.
+**Figure 1.** Official IFStruct pass, one seed. **a**, Greedy decode on the full 2,000-prompt split (bars) and pass@8 at T = 1 on the 128-prompt probe (circles). Cookbook GRPO and official-validator GRPO are highlighted. **b**, Full-set greedy pass split by output format.
 
 ![Figure 2](artifacts/ifstruct-lfm350/train.png)
 
@@ -32,7 +48,7 @@ Compact metrics: [`artifacts/ifstruct-lfm350/`](artifacts/ifstruct-lfm350/). Mer
 
 ### Train checker vs exam
 
-A generation is a **hack** if the cookbook combined reward is `> 0.8` and official `validate_response` still fails.
+A generation is a **hack** if the cookbook combined reward is `> 0.8` and official `validate_response` still fails. Combined reward maxes at 3.5, so 0.8 is a soft bar — not a claim that the cookbook “passed.” Counts below are on the 128-prompt probe.
 
 | Run | Cookbook-high | Of those, official fail | Hack rate |
 |---|---:|---:|---:|

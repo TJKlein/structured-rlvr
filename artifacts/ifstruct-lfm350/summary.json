@@ -4,23 +4,95 @@
   "probe": "128 prompts, even seeds 0..254",
   "seed": 0,
   "official_greedy_pass": {
-    "base": {"passed": 27, "n": 128, "pass_rate": 0.2109375},
-    "cookbook_grpo": {"passed": 45, "n": 128, "pass_rate": 0.3515625},
-    "official_grpo": {"passed": 42, "n": 128, "pass_rate": 0.328125},
-    "official_grpo_curriculum": {"passed": 39, "n": 128, "pass_rate": 0.3046875},
-    "corpo": {"passed": 39, "n": 128, "pass_rate": 0.3046875},
-    "raft": {"passed": 20, "n": 128, "pass_rate": 0.15625}
+    "base": {
+      "passed": 27,
+      "n": 128,
+      "pass_rate": 0.2109375
+    },
+    "cookbook_grpo": {
+      "passed": 45,
+      "n": 128,
+      "pass_rate": 0.3515625
+    },
+    "official_grpo": {
+      "passed": 42,
+      "n": 128,
+      "pass_rate": 0.328125
+    },
+    "official_grpo_curriculum": {
+      "passed": 39,
+      "n": 128,
+      "pass_rate": 0.3046875
+    },
+    "corpo": {
+      "passed": 39,
+      "n": 128,
+      "pass_rate": 0.3046875
+    },
+    "raft": {
+      "passed": 20,
+      "n": 128,
+      "pass_rate": 0.15625
+    }
   },
   "pass_at_8_temperature_1": {
-    "base": {"pass_at_1": 0.1318359375, "pass_at_k": 0.328125},
-    "cookbook_grpo": {"pass_at_1": 0.2451171875, "pass_at_k": 0.4453125},
-    "official_grpo": {"pass_at_1": 0.259765625, "pass_at_k": 0.4921875}
+    "base": {
+      "pass_at_1": 0.1318359375,
+      "pass_at_k": 0.328125
+    },
+    "cookbook_grpo": {
+      "pass_at_1": 0.2451171875,
+      "pass_at_k": 0.4453125
+    },
+    "official_grpo": {
+      "pass_at_1": 0.259765625,
+      "pass_at_k": 0.4921875
+    }
   },
   "hack_rate": {
     "definition": "cookbook combined reward > 0.8 and official validate_response fail",
-    "base": {"hack_n": 16, "cookbook_high_n": 25, "rate": 0.64},
-    "cookbook_grpo": {"hack_n": 26, "cookbook_high_n": 47, "rate": 0.5532},
-    "official_grpo": {"hack_n": 20, "cookbook_high_n": 37, "rate": 0.5405}
+    "base": {
+      "hack_n": 16,
+      "cookbook_high_n": 25,
+      "rate": 0.64
+    },
+    "cookbook_grpo": {
+      "hack_n": 26,
+      "cookbook_high_n": 47,
+      "rate": 0.5532
+    },
+    "official_grpo": {
+      "hack_n": 20,
+      "cookbook_high_n": 37,
+      "rate": 0.5405
+    }
   },
-  "opsa_screen": "skip"
+  "opsa_screen": "skip",
+  "official_greedy_full2000": {
+    "n": 2000,
+    "decoder": "HF generate greedy (do_sample=False, max_new_tokens=2048)",
+    "note": "Full official IFeval-Struct-v1 split. A0 vs A2 still confounds data mix (Nemotron vs train__*) with reward (cookbook vs validate_response). One seed.",
+    "base": {
+      "passed": 417,
+      "n": 2000,
+      "pass_rate": 0.2085,
+      "json": 0.165,
+      "yaml": 0.252
+    },
+    "cookbook_grpo": {
+      "passed": 593,
+      "n": 2000,
+      "pass_rate": 0.2965,
+      "json": 0.31,
+      "yaml": 0.283
+    },
+    "official_grpo": {
+      "passed": 613,
+      "n": 2000,
+      "pass_rate": 0.3065,
+      "json": 0.322,
+      "yaml": 0.291
+    }
+  },
+  "probe_note": "128-prompt even-seed slice used for pass@8 and for CoRPO/RAFT/CMA. Do not use as the A0 vs A2 greedy ranking: probe flattered A0 (35.2 vs 32.8) vs full set (29.6 vs 30.6)."
 }
