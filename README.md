@@ -22,6 +22,10 @@ A0 follows the cookbook envelope: Nemotron structured-output prompts, three chea
 
 Compact metrics: [`artifacts/ifstruct-lfm350/`](artifacts/ifstruct-lfm350/). Merged weights are not in git.
 
+![Official IFStruct probe: greedy vs pass@8, JSON vs YAML](artifacts/ifstruct-lfm350/exam.png)
+
+![Train reward saturates; dead groups stay high](artifacts/ifstruct-lfm350/train.png)
+
 ### Train checker vs exam
 
 A generation is a **hack** if the cookbook combined reward is `> 0.8` and official `validate_response` still fails.
