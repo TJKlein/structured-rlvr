@@ -7,6 +7,7 @@
     "base": {"passed": 27, "n": 128, "pass_rate": 0.2109375},
     "cookbook_grpo": {"passed": 45, "n": 128, "pass_rate": 0.3515625},
     "official_grpo": {"passed": 42, "n": 128, "pass_rate": 0.328125},
+    "official_grpo_curriculum": {"passed": 39, "n": 128, "pass_rate": 0.3046875},
     "corpo": {"passed": 39, "n": 128, "pass_rate": 0.3046875},
     "raft": {"passed": 20, "n": 128, "pass_rate": 0.15625}
   },

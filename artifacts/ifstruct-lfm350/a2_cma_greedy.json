@@ -1,0 +1,10 @@
+{
+  "model": "official-grpo-curriculum-seed0",
+  "n": 128,
+  "passed": 39,
+  "pass_rate": 0.3046875,
+  "by_format": {
+    "json": {"passed": 22, "total": 61, "pass_rate": 0.3607},
+    "yaml": {"passed": 17, "total": 67, "pass_rate": 0.2537}
+  }
+}
