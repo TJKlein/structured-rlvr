@@ -18,6 +18,8 @@ Every number below uses official `validate_response`. Greedy decode unless noted
 
 A0 follows the cookbook envelope: Nemotron structured-output prompts, three cheap train rewards, official exam at test. A2 keeps the same LoRA / GRPO setup (r=16, G=8, 100 steps, T=1.1, β=0.01) and swaps in official-shaped train rewards plus a held-out `train__*` prompt generator. CoRPO and RAFT use the same ~4,000-rollout budget as A0. An OPSA screen on the base greedy run is a skip: failures are as confident as passes on the lowest-20% token logprobs.
 
+[Fu et al. (2609.04172)](https://arxiv.org/abs/2609.04172) show that on-policy distillation is data-overfed: a handful of queries cover most training states, and content-light templates nearly match real problems, because the teacher supplies a dense token signal. Sparse IFStruct GRPO is the other side of that split — Nemotron’s messier states beat a clean generator on greedy. `scripts/run_a2_coverage.sh` retrains A2 on 16 `train__*` prompts that target the remaining error modes (schema dump, wrapper vs list, YAML fence, enums, extra keys, item count) for 300 steps. On-policy distillation itself is gated: only if `LFM2.5-1.2B-Instruct` is at least 3 points above cookbook GRPO on the official probe (`python -m ifstruct_rl.opd_gate`).
+
 Compact metrics: [`artifacts/ifstruct-lfm350/`](artifacts/ifstruct-lfm350/). Merged weights are not in git.
 
 ### Train checker vs exam
@@ -62,6 +64,7 @@ bash scripts/setup_gpu.sh
 bash scripts/run_baseline.sh   # 128-probe greedy + OPSA screen
 bash scripts/run_a0.sh         # cookbook GRPO
 bash scripts/run_a2.sh         # official-validator GRPO
+bash scripts/run_a2_coverage.sh  # 16-prompt coverage set, 300 steps
 ```
 
 `HF_TOKEN` is only needed to download models and datasets.

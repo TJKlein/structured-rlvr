@@ -14,6 +14,7 @@ from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, set_seed
 from trl import GRPOConfig, GRPOTrainer
 
+from ifstruct_rl.coverage_set import load_coverage_dataset
 from ifstruct_rl.generator import load_generator_dataset
 from ifstruct_rl.rewards.official import REWARD_FUNCS, REWARD_WEIGHTS
 
@@ -26,6 +27,12 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--max-steps", type=int, default=100)
     parser.add_argument("--train-samples", type=int, default=600)
+    parser.add_argument(
+        "--data-source",
+        choices=("generator", "coverage"),
+        default="generator",
+        help="generator = 600 train__* rows; coverage = 16 exam-like error-mode prompts",
+    )
     parser.add_argument(
         "--data-order",
         choices=("shuffle", "curriculum"),
@@ -46,12 +53,16 @@ def main() -> None:
     os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
     set_seed(args.seed)
 
-    train_ds = load_generator_dataset(
-        n=args.train_samples,
-        seed=args.seed,
-        order=args.data_order,
-    )
-    print(f"generator rows: {len(train_ds)} order={args.data_order} lr={args.lr_scheduler}")
+    if args.data_source == "coverage":
+        train_ds = load_coverage_dataset()
+        print(f"coverage rows: {len(train_ds)} modes={sorted(set(train_ds['coverage_mode']))}")
+    else:
+        train_ds = load_generator_dataset(
+            n=args.train_samples,
+            seed=args.seed,
+            order=args.data_order,
+        )
+        print(f"generator rows: {len(train_ds)} order={args.data_order} lr={args.lr_scheduler}")
     print(f"entity types: {sorted(set(train_ds['entity_type']))}")
 
     dtype = torch.bfloat16 if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else torch.float16

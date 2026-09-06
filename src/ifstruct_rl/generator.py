@@ -322,6 +322,15 @@ def _render_prompt(
             f"Need {label}, {fmt}. Count: {count_txt}. {shape}. {fence}. {commentary}.{escape_bit}\n\n"
             f"Each item:\n{_field_bullets(item)}"
         )
+    if presentation == "hedged_bare":
+        tease = top_level_key or "records"
+        return (
+            f"need some {label} generated. let me spec this out. format is {output_format}. "
+            f"{fence}. root should be a bare array — actually wait, keyed under `{tease}:`? no. "
+            f"keep it a bare array, not wrapped in an object. {commentary}.\n\n"
+            f"count: {count_txt}. each item:\n{_field_bullets(item)}\n"
+            f"{escape_bit} do not invent extra keys."
+        )
     # chat_prose
     return (
         f"need some {label} generated, keep it practical. let me spec this out.\n\n"
@@ -331,22 +340,29 @@ def _render_prompt(
     )
 
 
-def generate_row(rng: random.Random, idx: int) -> dict[str, Any]:
-    slug, label, fields = ENTITY_SPECS[idx % len(ENTITY_SPECS)]
+def _fields_for_slug(slug: str) -> tuple[str, str, list]:
+    for name, label, fields in ENTITY_SPECS:
+        if name == slug:
+            return name, label, fields
+    raise KeyError(f"unknown entity slug {slug!r}")
+
+
+def build_row(
+    *,
+    slug: str,
+    output_format: str,
+    require_wrapper: bool,
+    top_level_key: str | None,
+    count: int | list[int],
+    require_code_block: bool,
+    require_no_commentary: bool,
+    escaping: bool,
+    presentation: str,
+    coverage_mode: str = "",
+) -> dict[str, Any]:
+    _name, label, fields = _fields_for_slug(slug)
     entity_type = _entity_type(slug)
     assert not entity_type.startswith(TEST_ENTITY_PREFIX)
-    output_format = rng.choice(["json", "yaml"])
-    require_wrapper = rng.random() < 0.5
-    top_level_key = rng.choice(WRAPPER_KEYS) if require_wrapper else None
-    require_code_block = rng.random() < 0.63
-    require_no_commentary = rng.random() < 0.5
-    if rng.random() < 0.5:
-        count: int | list[int] = rng.randint(2, 5)
-    else:
-        lo = rng.randint(2, 4)
-        count = [lo, lo + rng.randint(1, 2)]
-    escaping = rng.random() < 0.30
-    presentation = rng.choice(["chat_prose", "bullet_paths", "raw_json_schema"])
     item = _item_schema(fields, escaping)
     json_schema = _array_schema(item, count)
     prompt = _render_prompt(
@@ -362,7 +378,7 @@ def generate_row(rng: random.Random, idx: int) -> dict[str, Any]:
         presentation=presentation,
         escaping=escaping,
     )
-    return {
+    row = {
         "prompt": [{"role": "user", "content": prompt}],
         "json_schema_str": json.dumps(json_schema),
         "top_level_count_str": json.dumps(count),
@@ -374,6 +390,31 @@ def generate_row(rng: random.Random, idx: int) -> dict[str, Any]:
         "entity_type": entity_type,
         "presentation": presentation,
     }
+    if coverage_mode:
+        row["coverage_mode"] = coverage_mode
+    return row
+
+
+def generate_row(rng: random.Random, idx: int) -> dict[str, Any]:
+    slug, _label, _fields = ENTITY_SPECS[idx % len(ENTITY_SPECS)]
+    require_wrapper = rng.random() < 0.5
+    top_level_key = rng.choice(WRAPPER_KEYS) if require_wrapper else None
+    if rng.random() < 0.5:
+        count: int | list[int] = rng.randint(2, 5)
+    else:
+        lo = rng.randint(2, 4)
+        count = [lo, lo + rng.randint(1, 2)]
+    return build_row(
+        slug=slug,
+        output_format=rng.choice(["json", "yaml"]),
+        require_wrapper=require_wrapper,
+        top_level_key=top_level_key,
+        count=count,
+        require_code_block=rng.random() < 0.63,
+        require_no_commentary=rng.random() < 0.5,
+        escaping=rng.random() < 0.30,
+        presentation=rng.choice(["chat_prose", "bullet_paths", "raw_json_schema"]),
+    )
 
 
 def difficulty_score(row: dict[str, Any]) -> float:
