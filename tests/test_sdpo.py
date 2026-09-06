@@ -61,6 +61,33 @@ def test_teacher_prompt_appends_checker_block():
     assert "The attempt follows" in out[0]
 
 
+def test_cookbook_prompt_uses_cookbook_label():
+    out = build_teacher_prompts(
+        ["Q"], ["Cookbook schema: 'x' is a required property"], recipe="cookbook"
+    )
+    assert "[Cookbook checker]" in out[0]
+    assert "[IFStruct checker]" not in out[0]
+
+
+def test_cookbook_score_rejects_unparseable():
+    from ifstruct_rl.sdpo import score_cookbook_row
+
+    scored = score_cookbook_row(
+        "not json", {"schema_str": '{"type": "object"}', "wants_fence": False}
+    )
+    assert scored["passed"] is False
+    assert any("format" in e.lower() for e in scored["errors"])
+
+
+def test_cookbook_score_accepts_valid_object():
+    from ifstruct_rl.sdpo import score_cookbook_row
+
+    schema = '{"type": "object", "properties": {"a": {"type": "number"}}, "required": ["a"]}'
+    scored = score_cookbook_row('{"a": 1}', {"schema_str": schema, "wants_fence": False})
+    assert scored["passed"] is True
+    assert scored["errors"] == []
+
+
 def test_mix_lambda_one_is_broadcast_grpo():
     grpo = torch.tensor([1.0, -0.5])
     teacher = torch.zeros(2, 4)

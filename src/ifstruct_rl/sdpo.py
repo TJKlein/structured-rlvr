@@ -1,11 +1,15 @@
-"""Hybrid SDPO+GRPO (Baecher et al., arXiv:2601.20802) on official IFStruct errors.
+"""Hybrid SDPO+GRPO (Baecher et al., arXiv:2601.20802).
 
-GRPO still scores the whole completion. SDPO then re-reads those same tokens
-after concatenating checker errors and, when present, a successful sibling.
-The dense term is log π_teacher(y_t | x, f, y_<t) − log π_student(y_t | x, y_<t).
+Two matched recipes, same LoRA / 100-step / G=8 envelope:
 
-350M is below the paper's self-teaching scale, so the default is λ=0.9
-(mostly GRPO). No external teacher. No EMA in this v1.
+* ``cookbook`` — Nemotron + the three cheap train rewards; dense feedback
+  is jsonschema / format text from that weak checker.
+* ``official`` — ``train__*`` generator + official-shaped rewards; dense
+  feedback is ``validate_response`` error strings.
+
+GRPO still scores the whole completion. SDPO re-reads those same tokens
+after concatenating checker text and, when present, a successful sibling.
+λ=0.9 (mostly GRPO) because 350M is below the paper's self-teaching scale.
 """
 
 from __future__ import annotations
@@ -15,9 +19,14 @@ from typing import Any
 import torch
 
 MAX_ERROR_CHARS = 400
-TEACHER_TAIL = (
-    "\n\n[IFStruct checker]\n{feedback}\n[End checker. The attempt follows.]\n"
-)
+TEACHER_TAILS = {
+    "official": (
+        "\n\n[IFStruct checker]\n{feedback}\n[End checker. The attempt follows.]\n"
+    ),
+    "cookbook": (
+        "\n\n[Cookbook checker]\n{feedback}\n[End checker. The attempt follows.]\n"
+    ),
+}
 
 
 def format_error_text(errors: list[str] | None) -> str:
@@ -65,10 +74,18 @@ def teacher_feedback_blocks(
     return out
 
 
-def build_teacher_prompts(prompts: list[str], feedback: list[str]) -> list[str]:
+def build_teacher_prompts(
+    prompts: list[str],
+    feedback: list[str],
+    *,
+    recipe: str = "official",
+) -> list[str]:
     if len(prompts) != len(feedback):
         raise ValueError("prompts and feedback length mismatch")
-    return [p.rstrip() + TEACHER_TAIL.format(feedback=f) for p, f in zip(prompts, feedback)]
+    if recipe not in TEACHER_TAILS:
+        raise ValueError(f"unknown sdpo recipe {recipe}")
+    tail = TEACHER_TAILS[recipe]
+    return [p.rstrip() + tail.format(feedback=f) for p, f in zip(prompts, feedback)]
 
 
 def mix_advantages(
@@ -87,7 +104,38 @@ def mix_advantages(
     return lam * grpo_adv.unsqueeze(1) + (1.0 - lam) * sdpo
 
 
-def score_from_row(text: str, row: dict[str, Any]) -> dict:
+def score_cookbook_row(text: str, row: dict[str, Any]) -> dict:
+    """Weak-checker pass/fail + error strings. jsonschema is a core dep."""
+    import json
+
+    from jsonschema import Draft7Validator
+
+    from ifstruct_rl.rewards.cookbook import extract_json
+
+    errors: list[str] = []
+    obj, form = extract_json(text.strip())
+    wants_fence = bool(row.get("wants_fence"))
+    requested = "fenced" if wants_fence else "direct"
+    if form is None:
+        errors.append("Cookbook format: no parseable JSON")
+    elif form != requested:
+        errors.append(f"Cookbook format: got {form}, wanted {requested}")
+    schema_raw = row.get("schema_str")
+    if schema_raw:
+        schema = json.loads(schema_raw) if isinstance(schema_raw, str) else schema_raw
+        if not isinstance(obj, (dict, list)):
+            errors.append("Cookbook schema: no object to check")
+        else:
+            for err in Draft7Validator(schema).iter_errors(obj):
+                msg = err.message.strip()
+                if msg:
+                    errors.append(f"Cookbook schema: {msg}")
+    return {"passed": not errors, "errors": errors}
+
+
+def score_from_row(text: str, row: dict[str, Any], recipe: str = "official") -> dict:
+    if recipe == "cookbook":
+        return score_cookbook_row(text, row)
     from ifstruct_rl.rewards.official import SPEC_KEYS, score_completion
 
     spec = {key: row[key] for key in SPEC_KEYS if key in row}
@@ -109,6 +157,7 @@ def sdpo_trainer_class():
         """TRL 1.7 GRPOTrainer with (B, T) hybrid advantages after scoring."""
 
         sdpo_lambda: float = 0.9
+        sdpo_recipe: str = "official"
 
         @profiling_decorator
         def _generate_and_score_completions(self, inputs):
@@ -143,10 +192,11 @@ def sdpo_trainer_class():
             tok = self.processing_class
             prompts = tok.batch_decode(prompt_ids, skip_special_tokens=True)
             completions = tok.batch_decode(completion_ids, skip_special_tokens=True)
+            recipe = str(getattr(self, "sdpo_recipe", "official"))
             passed: list[bool] = []
             errors: list[list[str]] = []
             for text, row in zip(completions, inputs, strict=True):
-                scored = score_from_row(text, row)
+                scored = score_from_row(text, row, recipe=recipe)
                 passed.append(bool(scored["passed"]))
                 errors.append(list(scored.get("errors") or []))
 
@@ -156,7 +206,7 @@ def sdpo_trainer_class():
                 completions=completions,
                 num_generations=g,
             )
-            teacher_prompts = build_teacher_prompts(prompts, feedback)
+            teacher_prompts = build_teacher_prompts(prompts, feedback, recipe=recipe)
 
             unwrap = self.accelerator.unwrap_model(self.model)
             was_training = unwrap.training
@@ -196,7 +246,7 @@ def sdpo_trainer_class():
                 self.accelerator.gather(gap).nanmean().item()
             )
             n_pass = gap.new_tensor(float(sum(passed)) / max(len(passed), 1))
-            train_metrics.setdefault("sdpo/official_pass_frac", []).append(
+            train_metrics.setdefault("sdpo/env_pass_frac", []).append(
                 self.accelerator.gather(n_pass).nanmean().item()
             )
             return mixed

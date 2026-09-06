@@ -1,7 +1,9 @@
-"""Hybrid SDPO+GRPO on the A2 envelope (Baecher et al., arXiv:2601.20802).
+"""Hybrid SDPO+GRPO (Baecher et al., arXiv:2601.20802).
 
-Same LoRA / 100 steps / G=8 / official rewards / train__* generator as A2.
-λ=0.9 (mostly GRPO) because LFM2.5-350M is below the paper's self-teaching scale.
+Two recipes, same LoRA / 100 steps / G=8 / λ=0.9:
+
+* cookbook — Nemotron + cheap train rewards (A0 envelope)
+* official — train__* generator + official-shaped rewards (A2 envelope)
 """
 
 from __future__ import annotations
@@ -15,9 +17,6 @@ from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, set_seed
 from trl import GRPOConfig
 
-from ifstruct_rl.coverage_set import load_coverage_dataset
-from ifstruct_rl.generator import load_generator_dataset
-from ifstruct_rl.rewards.official import REWARD_FUNCS, REWARD_WEIGHTS
 from ifstruct_rl.sdpo import sdpo_trainer_class
 
 
@@ -25,14 +24,21 @@ def main() -> None:
     load_dotenv()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", default="LiquidAI/LFM2.5-350M")
-    parser.add_argument("--output-dir", default="runs/sdpo-lfm350-official-seed0")
+    parser.add_argument("--output-dir", default=None)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--max-steps", type=int, default=100)
-    parser.add_argument("--train-samples", type=int, default=600)
+    parser.add_argument(
+        "--recipe",
+        choices=("cookbook", "official"),
+        default="official",
+        help="cookbook = A0 data+rewards; official = A2 data+rewards",
+    )
+    parser.add_argument("--train-samples", type=int, default=None)
     parser.add_argument(
         "--data-source",
         choices=("generator", "coverage"),
         default="generator",
+        help="Only used with --recipe official",
     )
     parser.add_argument(
         "--sdpo-lambda",
@@ -50,12 +56,29 @@ def main() -> None:
     os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
     set_seed(args.seed)
 
-    if args.data_source == "coverage":
-        train_ds = load_coverage_dataset()
-        print(f"coverage rows: {len(train_ds)}")
+    if args.recipe == "cookbook":
+        from ifstruct_rl.data_nemotron import load_nemotron_cookbook
+        from ifstruct_rl.rewards.cookbook import REWARD_FUNCS, REWARD_WEIGHTS
+
+        n = 1000 if args.train_samples is None else args.train_samples
+        train_ds = load_nemotron_cookbook(n=n)
+        default_dir = f"runs/sdpo-lfm350-cookbook-seed{args.seed}"
+        print(f"recipe=cookbook nemotron rows={len(train_ds)}")
     else:
-        train_ds = load_generator_dataset(n=args.train_samples, seed=args.seed)
-        print(f"generator rows: {len(train_ds)}")
+        from ifstruct_rl.coverage_set import load_coverage_dataset
+        from ifstruct_rl.generator import load_generator_dataset
+        from ifstruct_rl.rewards.official import REWARD_FUNCS, REWARD_WEIGHTS
+
+        n = 600 if args.train_samples is None else args.train_samples
+        if args.data_source == "coverage":
+            train_ds = load_coverage_dataset()
+            print(f"recipe=official coverage rows={len(train_ds)}")
+        else:
+            train_ds = load_generator_dataset(n=n, seed=args.seed)
+            print(f"recipe=official generator rows={len(train_ds)}")
+        default_dir = f"runs/sdpo-lfm350-official-seed{args.seed}"
+
+    output_dir = args.output_dir or default_dir
 
     dtype = torch.bfloat16 if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else torch.float16
     model = AutoModelForCausalLM.from_pretrained(
@@ -85,7 +108,7 @@ def main() -> None:
     model.print_trainable_parameters()
 
     training_args = GRPOConfig(
-        output_dir=args.output_dir,
+        output_dir=output_dir,
         learning_rate=5e-5,
         warmup_steps=max(1, int(0.1 * args.max_steps)),
         lr_scheduler_type="cosine",
@@ -114,15 +137,16 @@ def main() -> None:
         train_dataset=train_ds,
     )
     trainer.sdpo_lambda = args.sdpo_lambda
-    print(f"SDPO+GRPO λ={args.sdpo_lambda} (1=pure GRPO)")
+    trainer.sdpo_recipe = args.recipe
+    print(f"SDPO+GRPO recipe={args.recipe} λ={args.sdpo_lambda} (1=pure GRPO)")
     trainer.train()
-    trainer.save_model(args.output_dir)
-    tokenizer.save_pretrained(args.output_dir)
-    merged_dir = f"{args.output_dir}-merged"
+    trainer.save_model(output_dir)
+    tokenizer.save_pretrained(output_dir)
+    merged_dir = f"{output_dir}-merged"
     merged = trainer.model.merge_and_unload()
     merged.save_pretrained(merged_dir)
     tokenizer.save_pretrained(merged_dir)
-    print(f"adapter saved to {args.output_dir}")
+    print(f"adapter saved to {output_dir}")
     print(f"merged model saved to {merged_dir}")
 
 
