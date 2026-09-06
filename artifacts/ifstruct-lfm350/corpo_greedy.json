@@ -1,0 +1,85 @@
+{
+  "model": "runs/corpo-lfm350-cookbook-seed0-merged",
+  "n": 128,
+  "passed": 39,
+  "pass_rate": 0.3046875,
+  "elapsed_s": 521.4148323900008,
+  "mean_tokens": 341.2109375,
+  "truncated_frac": 0.0,
+  "by_format": {
+    "json": {
+      "passed": 17,
+      "total": 61,
+      "pass_rate": 0.2786885245901639
+    },
+    "yaml": {
+      "passed": 22,
+      "total": 67,
+      "pass_rate": 0.3283582089552239
+    }
+  },
+  "top_errors": [
+    [
+      "required field missing",
+      559
+    ],
+    [
+      "expected array, got dict",
+      23
+    ],
+    [
+      "extraneous field 'includes_parenthetical'",
+      11
+    ],
+    [
+      "extraneous field 'includes_voice_over'",
+      11
+    ],
+    [
+      "extraneous field 'requirements[].is_required'",
+      8
+    ],
+    [
+      "extraneous field 'requirements[].skill_name'",
+      8
+    ],
+    [
+      "extraneous field 'requirements[].years_required'",
+      8
+    ],
+    [
+      "extraneous field 'focal_element'",
+      8
+    ],
+    [
+      "array has 3 items, minimum is 5",
+      7
+    ],
+    [
+      "extraneous field 'room_type'",
+      7
+    ],
+    [
+      "array has 1 items, minimum is 2",
+      6
+    ],
+    [
+      "extraneous field 'draft_label'",
+      6
+    ],
+    [
+      "extraneous field 'genre'",
+      6
+    ],
+    [
+      "extraneous field 'location_type'",
+      6
+    ],
+    [
+      "extraneous field 'time_of_day'",
+      6
+    ]
+  ],
+  "created_at": "2026-09-06T04:14:44.823488+00:00",
+  "note": "Expected pass_rate ~0.21 on full IFStruct; probe-128 may differ by a few points."
+}

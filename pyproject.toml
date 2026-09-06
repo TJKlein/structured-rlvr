@@ -1,0 +1,42 @@
+[project]
+name = "structured-rlvr"
+version = "0.1.0"
+description = "Short RLVR recipes for structured-output exams (IFStruct first)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = [
+  "ifstruct @ git+https://github.com/Liquid4All/ifstruct.git",
+  "transformers>=4.51.0",
+  "accelerate>=1.0.0",
+  "huggingface_hub>=0.26.0",
+  "datasets>=3.0.0",
+  "python-dotenv>=1.0.1",
+  "pyyaml>=6.0",
+  "jsonschema>=4.0.0",
+]
+
+[project.optional-dependencies]
+train = [
+  "trl==1.7.1",
+  "peft==0.19.1",
+]
+
+[project.scripts]
+eval-baseline = "ifstruct_rl.eval_baseline:main"
+eval-passk = "ifstruct_rl.eval_passk:main"
+opsa-screen = "ifstruct_rl.opsa_screen:main"
+train-a0 = "ifstruct_rl.train_a0:main"
+train-a2 = "ifstruct_rl.train_a2:main"
+train-raft = "ifstruct_rl.train_raft:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

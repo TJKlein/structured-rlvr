@@ -1,0 +1,17 @@
+{
+  "exam": "IFStruct v1.0 official validate_response",
+  "model": "LiquidAI/LFM2.5-350M",
+  "probe": "128 prompts, even seeds 0..254",
+  "seed": 0,
+  "official_greedy_pass": {
+    "base": {"passed": 27, "n": 128, "pass_rate": 0.2109375},
+    "a0_cookbook_grpo": {"passed": 45, "n": 128, "pass_rate": 0.3515625},
+    "corpo_r_min_2": {"passed": 39, "n": 128, "pass_rate": 0.3046875},
+    "raft_r_min_2": {"passed": 20, "n": 128, "pass_rate": 0.15625}
+  },
+  "pass_at_8_temperature_1": {
+    "base": {"pass_at_1": 0.1318, "pass_at_k": 0.3281},
+    "a0_cookbook_grpo": {"pass_at_1": 0.2451, "pass_at_k": 0.4453}
+  },
+  "opsa_screen": "NOGO_SKIP_OPSA"
+}

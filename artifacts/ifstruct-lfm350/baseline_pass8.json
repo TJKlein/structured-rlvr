@@ -1,0 +1,26 @@
+{
+  "model": "LiquidAI/LFM2.5-350M",
+  "n": 128,
+  "k": 8,
+  "temperature": 1.0,
+  "seed": 0,
+  "pass_at_1": 0.1318359375,
+  "pass_at_k": 0.328125,
+  "any_pass_frac": 0.328125,
+  "mean_n_pass": 1.0546875,
+  "by_format": {
+    "json": {
+      "n": 61,
+      "pass_at_1": 0.13729508196721313,
+      "pass_at_k": 0.29508196721311475
+    },
+    "yaml": {
+      "n": 67,
+      "pass_at_1": 0.12686567164179105,
+      "pass_at_k": 0.3582089552238806
+    }
+  },
+  "created_at": "2026-09-06T00:05:32.064158+00:00",
+  "note": "pass@1 is the unbiased estimator c/k at T=1.0 (not greedy). Compare to results/baseline_probe128.json greedy pass_rate.",
+  "elapsed_s": 743.6908832549816
+}

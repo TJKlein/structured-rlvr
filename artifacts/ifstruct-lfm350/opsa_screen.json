@@ -1,0 +1,46 @@
+{
+  "source": "results/baseline_probe128.json",
+  "n": 128,
+  "passed": {
+    "count": 27,
+    "pass_rate": 1.0,
+    "mean_of_mean_logp": -0.16441055491578427,
+    "mean_of_lowest20_logp": -0.7704905098152393,
+    "mean_frac_tail": 0.013529493181953518
+  },
+  "failed": {
+    "count": 101,
+    "pass_rate": 0.0,
+    "mean_of_mean_logp": -0.15467637032685727,
+    "mean_of_lowest20_logp": -0.7009549564331683,
+    "mean_frac_tail": 0.011034020226262261
+  },
+  "json": {
+    "count": 61,
+    "pass_rate": 0.16393442622950818,
+    "mean_of_mean_logp": -0.13734565518131,
+    "mean_of_lowest20_logp": -0.6454527333585814,
+    "mean_frac_tail": 0.011114499204951155
+  },
+  "yaml": {
+    "count": 67,
+    "pass_rate": 0.2537313432835821,
+    "mean_of_mean_logp": -0.1743778122340127,
+    "mean_of_lowest20_logp": -0.7795086213416117,
+    "mean_frac_tail": 0.01196638667557034
+  },
+  "escaping_entity": {
+    "count": 66,
+    "pass_rate": 0.19696969696969696,
+    "mean_of_mean_logp": -0.20244965335658485,
+    "mean_of_lowest20_logp": -0.8875942237531214,
+    "mean_frac_tail": 0.014868013012536029
+  },
+  "decision_rule": {
+    "go": "failed.mean_of_lowest20_logp is clearly lower than passed (gap >= 0.3 nats) AND failed.mean_frac_tail is higher. Then a 40-step OPSA train is worth it.",
+    "nogo": "failed lowest-20% logp >= passed, or failed tail mass is not higher. Skip OPSA training. Canonical OPSA (DripNowhy/On-Policy-Self-Adaptation) selects the lowest 20% actor logp tokens and assigns entropy-adaptive advantages in [-1.0, -0.5]; it does not use a task reward."
+  },
+  "mean_logp_gap_passed_minus_failed": -0.009734184588926997,
+  "lowest20_gap_passed_minus_failed": -0.06953555338207096,
+  "recommendation": "NOGO_SKIP_OPSA"
+}
