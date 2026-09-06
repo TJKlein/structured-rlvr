@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Full first milestone: 128-prompt IFStruct baseline + OPSA go/no-go screen.
+# 128-prompt IFStruct greedy eval + OPSA screen.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

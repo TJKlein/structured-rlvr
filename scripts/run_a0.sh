@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# A0 cookbook GRPO (100 steps, Nemotron, Liquid notebook pins).
+# Cookbook GRPO (100 steps, Nemotron, Liquid notebook pins).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

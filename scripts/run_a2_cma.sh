@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# A2 with easy→hard generator order and constant LR after warmup.
+# Official-validator GRPO with easy→hard generator order and constant LR after warmup.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

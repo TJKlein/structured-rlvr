@@ -1,85 +1,44 @@
 {
-  "model": "runs/a0-lfm350-cookbook-seed0-merged",
+  "model": "cookbook-grpo-seed0",
   "n": 128,
   "passed": 45,
   "pass_rate": 0.3515625,
-  "elapsed_s": 614.818939299992,
-  "mean_tokens": 403.0859375,
-  "truncated_frac": 0.0,
   "by_format": {
     "json": {
       "passed": 24,
       "total": 61,
-      "pass_rate": 0.39344262295081966
+      "pass_rate": 0.3934
     },
     "yaml": {
       "passed": 21,
       "total": 67,
-      "pass_rate": 0.31343283582089554
+      "pass_rate": 0.3134
     }
   },
   "top_errors": [
-    [
-      "required field missing",
-      582
-    ],
-    [
-      "expected array, got dict",
-      12
-    ],
-    [
-      "extraneous field 'benchmark_results[].resolution'",
-      10
-    ],
-    [
-      "extraneous field 'benchmark_results[].score'",
-      10
-    ],
-    [
-      "extraneous field 'benchmark_results[].test_name'",
-      10
-    ],
-    [
-      "extraneous field 'room_type'",
-      9
-    ],
-    [
-      "extraneous field 'requirements[].is_required'",
-      8
-    ],
-    [
-      "extraneous field 'requirements[].skill_name'",
-      8
-    ],
-    [
-      "extraneous field 'requirements[].years_required'",
-      8
-    ],
-    [
-      "extraneous field 'path'",
-      8
-    ],
-    [
-      "extraneous field 'sample_text'",
-      8
-    ],
-    [
-      "extraneous field 'timestamp_present'",
-      8
-    ],
-    [
-      "extraneous field 'backlog_priority'",
-      8
-    ],
-    [
-      "extraneous field 'speaker_labels'",
-      7
-    ],
-    [
-      "array has 3 items, minimum is 5",
-      7
-    ]
-  ],
-  "created_at": "2026-09-06T01:30:56.566461+00:00",
-  "note": "Expected pass_rate ~0.21 on full IFStruct; probe-128 may differ by a few points."
+    {
+      "error": "required field missing",
+      "count": 582
+    },
+    {
+      "error": "expected array, got dict",
+      "count": 12
+    },
+    {
+      "error": "extraneous field 'benchmark_results[].resolution'",
+      "count": 10
+    },
+    {
+      "error": "extraneous field 'benchmark_results[].score'",
+      "count": 10
+    },
+    {
+      "error": "extraneous field 'benchmark_results[].test_name'",
+      "count": 10
+    },
+    {
+      "error": "extraneous field 'room_type'",
+      "count": 9
+    }
+  ]
 }

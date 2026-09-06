@@ -1,10 +1,12 @@
 [project]
 name = "structured-rlvr"
 version = "0.1.0"
-description = "Short RLVR recipes for structured-output exams (IFStruct first)."
+description = "RLVR recipes for structured-output exams (IFStruct first)."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "Apache-2.0" }
+authors = [{ name = "Tassilo Klein" }]
+keywords = ["rlvr", "grpo", "structured-output", "ifstruct", "llm"]
 dependencies = [
   "ifstruct @ git+https://github.com/Liquid4All/ifstruct.git",
   "transformers>=4.51.0",
@@ -21,6 +23,13 @@ train = [
   "trl==1.7.1",
   "peft==0.19.1",
 ]
+dev = [
+  "pytest>=8.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/TJKlein/structured-rlvr"
+Issues = "https://github.com/TJKlein/structured-rlvr/issues"
 
 [project.scripts]
 eval-baseline = "ifstruct_rl.eval_baseline:main"

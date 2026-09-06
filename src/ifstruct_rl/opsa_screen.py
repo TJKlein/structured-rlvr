@@ -83,7 +83,7 @@ def main() -> None:
             ),
             "nogo": (
                 "failed lowest-20% logp >= passed, or failed tail mass is not higher. "
-                "Skip OPSA training. Canonical OPSA (DripNowhy/On-Policy-Self-Adaptation) "
+                "Skip OPSA training. Canonical OPSA (arXiv:2608.31046) "
                 "selects the lowest 20% actor logp tokens and assigns entropy-adaptive "
                 "advantages in [-1.0, -0.5]; it does not use a task reward."
             ),

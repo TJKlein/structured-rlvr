@@ -3,83 +3,42 @@
   "n": 128,
   "passed": 27,
   "pass_rate": 0.2109375,
-  "elapsed_s": 554.4123746140103,
-  "mean_tokens": 363.578125,
-  "truncated_frac": 0.0,
   "by_format": {
     "json": {
       "passed": 10,
       "total": 61,
-      "pass_rate": 0.16393442622950818
+      "pass_rate": 0.1639
     },
     "yaml": {
       "passed": 17,
       "total": 67,
-      "pass_rate": 0.2537313432835821
+      "pass_rate": 0.2537
     }
   },
   "top_errors": [
-    [
-      "required field missing",
-      545
-    ],
-    [
-      "expected array, got dict",
-      23
-    ],
-    [
-      "Unclosed code block",
-      18
-    ],
-    [
-      "Response must use a code block but none was found",
-      9
-    ],
-    [
-      "extraneous field 'room_type'",
-      9
-    ],
-    [
-      "extraneous field 'requirements[].is_required'",
-      8
-    ],
-    [
-      "extraneous field 'requirements[].skill_name'",
-      8
-    ],
-    [
-      "extraneous field 'requirements[].years_required'",
-      8
-    ],
-    [
-      "extraneous field 'constraints'",
-      8
-    ],
-    [
-      "extraneous field 'notes'",
-      8
-    ],
-    [
-      "extraneous field 'path'",
-      8
-    ],
-    [
-      "extraneous field 'type'",
-      8
-    ],
-    [
-      "extraneous field 'title'",
-      8
-    ],
-    [
-      "extraneous field 'draft_label'",
-      7
-    ],
-    [
-      "extraneous field 'genre'",
-      7
-    ]
-  ],
-  "created_at": "2026-09-05T23:36:39.666241+00:00",
-  "note": "Expected pass_rate ~0.21 on full IFStruct; probe-128 may differ by a few points."
+    {
+      "error": "required field missing",
+      "count": 545
+    },
+    {
+      "error": "expected array, got dict",
+      "count": 23
+    },
+    {
+      "error": "Unclosed code block",
+      "count": 18
+    },
+    {
+      "error": "Response must use a code block but none was found",
+      "count": 9
+    },
+    {
+      "error": "extraneous field 'room_type'",
+      "count": 9
+    },
+    {
+      "error": "extraneous field 'requirements[].is_required'",
+      "count": 8
+    }
+  ]
 }

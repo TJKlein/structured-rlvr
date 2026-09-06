@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# CoRPO 1-seed appendix. Same A0 envelope, clipped GRPO baseline. Run AFTER A0.
+# CoRPO: same cookbook GRPO envelope, clipped group baseline. Run after cookbook GRPO.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

@@ -14,6 +14,9 @@ results/
 outputs/
 models/
 runs/
+logs/
 *.gguf
 .cache/
 hf-cache/
+wandb/
+trackio/

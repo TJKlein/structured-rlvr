@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# RAFT 1-seed appendix. Generate G=8, keep combined reward >= 2.0, SFT. Run AFTER A0.
+# RAFT: generate G=8, keep combined reward >= 2.0, then SFT. Run after cookbook GRPO.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

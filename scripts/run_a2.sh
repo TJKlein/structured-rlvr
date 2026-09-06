@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# A2 official-validator GRPO (generator data, 100 steps, same envelope as A0).
+# Official-validator GRPO (generator data, 100 steps, same envelope as cookbook GRPO).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
