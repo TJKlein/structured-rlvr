@@ -2,7 +2,9 @@
 
 Short reinforcement-learning-from-verifier-rewards (RLVR) recipes for **structured output**. The first experiment is [IFStruct](https://github.com/Liquid4All/ifstruct) instruction-following on [`LiquidAI/LFM2.5-350M`](https://huggingface.co/LiquidAI/LFM2.5-350M).
 
-**Result.** Liquid’s public 100-step [GRPO cookbook](https://huggingface.co/blog/grpo-with-trl-ifstruct) trains a looser checker than official IFStruct `validate_response`. On the full 2,000-prompt official greedy exam, matching that checker on a held-out generator was about even with the cookbook (613/2000 vs 593/2000). That is 20 prompts, one seed, and both the data mix and the train rewards changed, so it is not a method win.
+**Result.** A single-seed replication of Liquid’s public 100-step [GRPO cookbook](https://huggingface.co/blog/grpo-with-trl-ifstruct), scored with official IFStruct `validate_response` and Hugging Face `generate` (not llama.cpp). Base `LFM2.5-350M` went from **417/2000 (20.85%)** to **593/2000 (29.65%)**. Like the cookbook, most of the gain is JSON; YAML barely moved; leftover errors are missing fields, extra keys, counts, and shape. That is practical post-training, one seed, not a new RL method.
+
+A second run used a held-out procedural generator and official-validator train rewards: **613/2000 (30.65%)**. Data and rewards both changed, so this is **not** a reward-only comparison.
 
 ## Results (LFM2.5-350M, 1 seed)
 
@@ -12,17 +14,21 @@ Every number below uses official `validate_response`. Greedy decode via HF `gene
 
 | Run | Official greedy | JSON | YAML |
 |---|---:|---:|---:|
-| Base `LFM2.5-350M` | 417/2000 (**20.8%**) | 16.5% | 25.2% |
-| Cookbook GRPO (A0) | 593/2000 (**29.6%**) | 31.0% | 28.3% |
-| Official-validator GRPO (A2) | 613/2000 (**30.6%**) | 32.2% | 29.1% |
+| Base `LFM2.5-350M` | 417/2000 (**20.85%**) | 16.5% | 25.2% |
+| Cookbook GRPO (A0) | 593/2000 (**29.65%**) | 31.0% | 28.3% |
+| Official-validator GRPO (A2) | 613/2000 (**30.65%**) | 32.2% | 29.1% |
 
-A0 follows the cookbook envelope: Nemotron structured-output prompts, three cheap train rewards, official exam at test. A2 keeps the same LoRA / GRPO setup (r=16, G=8, 100 steps, T=1.1, β=0.01) and swaps in official-shaped train rewards plus a held-out `train__*` prompt generator. YAML barely moved (~25% → 28–29%); almost all of the lift is JSON. Remaining A0 failures are mostly missing required fields, extra keys, and list-vs-schema-dump shape — not forgotten fences.
+A0 follows the cookbook envelope: Nemotron structured-output prompts, three train rewards, official exam at test. A2 keeps the same LoRA / GRPO setup (r=16, G=8, 100 optimizer steps, T=1.1, β=0.01) and swaps in official-shaped train rewards plus a held-out `train__*` prompt generator. YAML ~25% → 28–29%; almost all of the lift is JSON. Remaining failures are mostly missing required fields, extra keys, and list-vs-schema-dump shape — fences are mostly gone.
 
-A0’s 29.6% is close to Liquid’s published 29.7%, but the decoder is different (HF `generate` vs llama.cpp), so do not read this as a rematch of the cookbook table.
+A0’s 29.65% is close to Liquid’s published 29.7%, but the decoder is different (HF `generate` vs llama.cpp), so this is not a rematch of the cookbook table. The cookbook already reports JSON-heavy gains and residual schema errors; this repo measures the same pattern under the official checker.
+
+**Not claimed:** A2 beating A0 as a reward ablation (+20/2000 is one seed, data+reward confounded). A generator+cookbook “A1” control is **invalid as run** (wrapped prompts scored against the unwrapped array schema) and is not used here. Cookbook vs official rewards on identical JSON rows is future work.
+
+On this config (`per_device_train_batch_size=4`, `gradient_accumulation_steps=8`, G=8, 100 steps, μ=1) GRPO generates **3,200 fresh completions**, not 4,000.
 
 ### Probe (128 even seeds `0..254`) — pass@8 and other trainers
 
-The 128-prompt slice is 6.4% of the test set. It flattered A0 on greedy (35.2% vs 32.8%) relative to the full set (29.6% vs 30.6%). Use it for pass@8, CoRPO, and RAFT, not as the A0 vs A2 greedy ranking.
+The 128-prompt slice is 6.4% of the test set. It flattered A0 on greedy (35.2% vs 32.8%) relative to the full set (29.65% vs 30.65%). Use it for pass@8, not as the A0 vs A2 greedy ranking.
 
 | Run | Official greedy | JSON | YAML | pass@8 (T=1.0) |
 |---|---:|---:|---:|---:|
@@ -32,7 +38,7 @@ The 128-prompt slice is 6.4% of the test set. It flattered A0 on greedy (35.2% v
 | CoRPO (`R_min=2.0`) | 39/128 (**30.5%**) | 27.9% | 32.8% | — |
 | RAFT (filter then SFT) | 20/128 (**15.6%**) | 26.2% | 6.0% | — |
 
-CoRPO and RAFT use the same ~4,000-rollout budget as A0. A curriculum-ordered A2 rerun (easy→hard, constant LR) scored 39/128 (**30.5%**) greedy and is not a win. An OPSA screen on the base greedy run is a skip: failures are as confident as passes on the lowest-20% token logprobs.
+CoRPO and RAFT are **not** matched-budget controls (RAFT stored 4,296 filter rollouts; GRPO here is 3,200). They are not a no-judge test of whether the compiler-as-judge is necessary. An easy→hard dataset sort was shuffled again by TRL (`shuffle_dataset=True`); that rerun does not establish that curriculum fails. An OPSA screen on the base greedy run skipped training: failures were not clearly lower-logp than passes.
 
 Compact metrics: [`artifacts/ifstruct-lfm350/`](artifacts/ifstruct-lfm350/). Merged weights are not in git.
 
@@ -42,7 +48,7 @@ Compact metrics: [`artifacts/ifstruct-lfm350/`](artifacts/ifstruct-lfm350/). Mer
 
 ![Figure 2](artifacts/ifstruct-lfm350/leftover.png)
 
-**Figure 2.** Leftover official error mentions on the same 2,000 greedy generations (a completion can contribute more than one). Cookbook GRPO almost wipes fence failures. Extra keys and list-vs-schema-dump remain — those are not what the three cheap train rewards look at.
+**Figure 2.** Leftover official error mentions on the same 2,000 greedy generations (a completion can contribute more than one). Cookbook GRPO almost wipes fence failures. Extra keys and list-vs-schema-dump remain.
 
 ![Figure 3](artifacts/ifstruct-lfm350/train.png)
 
