@@ -6,6 +6,10 @@ Short reinforcement-learning-from-verifier-rewards (RLVR) recipes for **structur
 
 A second run used a held-out procedural generator and official-validator train rewards: **613/2000 (30.65%)**. Data and rewards both changed, so this is **not** a reward-only comparison.
 
+## Current research direction
+
+The next question is whether small-model RL is limited by the availability of graded verifier signal rather than by the optimizer alone. Our active controlled study holds initialization, optimizer, prompt count, JSON/YAML mix, and KL reference fixed while comparing uniform RL on an original training pool with a structurally harder, verifier-validated pool. We will publish results only after matched midpoint checks, tokenizer-provenance audit, and frozen-screen evaluation. This study does not yet test adaptive optimizers such as PAC.
+
 ## Results (LFM2.5-350M, 1 seed)
 
 Every number below uses official `validate_response`. Greedy decode via HF `generate` (`do_sample=False`, `max_new_tokens=2048`).
