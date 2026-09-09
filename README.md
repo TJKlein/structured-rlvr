@@ -1,10 +1,19 @@
 # structured-rlvr
 
-Short reinforcement-learning-from-verifier-rewards (RLVR) recipes for **structured output**. The first experiment is [IFStruct](https://github.com/Liquid4All/ifstruct) instruction-following on [`LiquidAI/LFM2.5-350M`](https://huggingface.co/LiquidAI/LFM2.5-350M).
+**Reproducible post-training research for structured-output reliability.** This repository asks a practical question: when can reinforcement learning from verifier rewards (RLVR) make a small language model reliably satisfy an executable output contract?
+
+It contains end-to-end experiments: procedural data generation, deterministic reward design, LoRA/GRPO training, official-validator evaluation, error analysis, and compute accounting. The first study uses [IFStruct](https://github.com/Liquid4All/ifstruct) instruction following on [`LiquidAI/LFM2.5-350M`](https://huggingface.co/LiquidAI/LFM2.5-350M).
 
 **Result.** A single-seed replication of Liquid’s public 100-step [GRPO cookbook](https://huggingface.co/blog/grpo-with-trl-ifstruct), scored with official IFStruct `validate_response` and Hugging Face `generate` (not llama.cpp). Base `LFM2.5-350M` went from **417/2000 (20.85%)** to **593/2000 (29.65%)**. Like the cookbook, most of the gain is JSON; YAML barely moved; leftover errors are missing fields, extra keys, counts, and shape. That is practical post-training, one seed, not a new RL method.
 
 A second run used a held-out procedural generator and official-validator train rewards: **613/2000 (30.65%)**. Data and rewards both changed, so this is **not** a reward-only comparison.
+
+## What this repository demonstrates
+
+- An auditable RLVR loop where correctness is checked by an executable validator rather than preference labels.
+- Full-split evaluation, format-level slices, train-time reward diagnostics, and concrete error modes instead of a single headline score.
+- Matched-compute accounting and explicit treatment of invalid or inconclusive controls, including RAFT, CoRPO, and curriculum screens.
+- A live research path from verifier saturation diagnostics to controlled pool design, before testing newer optimizers.
 
 ## Current research direction
 
