@@ -1,0 +1,38 @@
+{
+  "title": "Qwen2.5-1.5B-Instruct IFStruct continuation study",
+  "evaluation": {
+    "dataset": "IFStruct v1.0 official 2,000-prompt split",
+    "validator": "ifstruct.validator.validate_response",
+    "decoder": "Hugging Face generate, greedy, max_new_tokens=2048, model chat template",
+    "seed": 0,
+    "note": "One seed. These point estimates are not multi-seed confirmation."
+  },
+  "official_greedy": [
+    {"stage": "base", "passed": 543, "total": 2000, "rate": 0.2715, "json_rate": 0.367, "yaml_rate": 0.176},
+    {"stage": "c0_grpo_100", "passed": 830, "total": 2000, "rate": 0.415, "json_rate": 0.446, "yaml_rate": 0.384},
+    {"stage": "u1_uniform_plus_50", "passed": 1066, "total": 2000, "rate": 0.533, "json_rate": 0.575, "yaml_rate": 0.491},
+    {"stage": "a1_adaptive_plus_50", "passed": 1066, "total": 2000, "rate": 0.533, "json_rate": 0.553, "yaml_rate": 0.513}
+  ],
+  "frozen_transfer_256": [
+    {"stage": "c0", "passed": 145, "total": 256},
+    {"stage": "u1", "passed": 150, "total": 256},
+    {"stage": "a1", "passed": 150, "total": 256}
+  ],
+  "closed_schema_screen_256": [
+    {"stage": "c0", "passed": 139, "total": 256},
+    {"stage": "u1", "passed": 153, "total": 256},
+    {"stage": "u2_uniform_plus_50", "passed": 120, "total": 256}
+  ],
+  "claims": {
+    "supported": [
+      "The first 100-step GRPO run and one matched uniform continuation improved official greedy IFStruct pass in this one-seed setup.",
+      "The tested adaptive sampling intervention did not improve aggregate official pass over uniform continuation."
+    ],
+    "not_supported": [
+      "A new RL algorithm or sampler.",
+      "Broad schema generalization.",
+      "RL superiority over matched SFT.",
+      "A multi-seed performance ranking."
+    ]
+  }
+}

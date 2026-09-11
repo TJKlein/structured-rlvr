@@ -4,6 +4,10 @@
 
 It contains end-to-end experiments: procedural data generation, deterministic reward design, LoRA/GRPO training, official-validator evaluation, error analysis, and compute accounting. The first study uses [IFStruct](https://github.com/Liquid4All/ifstruct) instruction following on [`LiquidAI/LFM2.5-350M`](https://huggingface.co/LiquidAI/LFM2.5-350M).
 
+**Qwen continuation study.** On [`Qwen/Qwen2.5-1.5B-Instruct`](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct), a one-seed LoRA GRPO study improved official greedy IFStruct pass from **543/2000 (27.15%)** to **830/2000 (41.50%)** after 100 steps and **1066/2000 (53.30%)** after a matched 50-step uniform continuation. A matched adaptive sampler also reached 53.30%, so this is evidence that the continuation helped in this setup, not evidence for a new sampler. See [`artifacts/ifstruct-qwen15/results.json`](artifacts/ifstruct-qwen15/results.json).
+
+The follow-up matters as much as the headline: the adaptive arm tied uniform, a later continuation regressed on a separately frozen closed-schema screen, and a composition-data follow-up did not retain an aggregate advantage on a stronger paired challenge. This repository reports those limits because they determine what the result supports.
+
 **Result.** A single-seed replication of Liquid’s public 100-step [GRPO cookbook](https://huggingface.co/blog/grpo-with-trl-ifstruct), scored with official IFStruct `validate_response` and Hugging Face `generate` (not llama.cpp). Base `LFM2.5-350M` went from **417/2000 (20.85%)** to **593/2000 (29.65%)**. Like the cookbook, most of the gain is JSON; YAML barely moved; leftover errors are missing fields, extra keys, counts, and shape. That is practical post-training, one seed, not a new RL method.
 
 A second run used a held-out procedural generator and official-validator train rewards: **613/2000 (30.65%)**. Data and rewards both changed, so this is **not** a reward-only comparison.
@@ -13,11 +17,43 @@ A second run used a held-out procedural generator and official-validator train r
 - An auditable RLVR loop where correctness is checked by an executable validator rather than preference labels.
 - Full-split evaluation, format-level slices, train-time reward diagnostics, and concrete error modes instead of a single headline score.
 - Matched-compute accounting and explicit treatment of invalid or inconclusive controls, including RAFT, CoRPO, and curriculum screens.
-- A live research path from verifier saturation diagnostics to controlled pool design, before testing newer optimizers.
+- A disciplined stopping rule: apparent gains on easy or template-bound screens
+  are not promoted without stronger transfer evidence.
 
-## Current research direction
+## Current conclusion
 
-The next question is whether small-model RL is limited by the availability of graded verifier signal rather than by the optimizer alone. Our active controlled study holds initialization, optimizer, prompt count, JSON/YAML mix, and KL reference fixed while comparing uniform RL on an original training pool with a structurally harder, verifier-validated pool. We will publish results only after matched midpoint checks, tokenizer-provenance audit, and frozen-screen evaluation. This study does not yet test adaptive optimizers such as PAC.
+## Qwen2.5-1.5B-Instruct continuation (1 seed)
+
+Every value below uses IFStruct's official `validate_response`, Hugging Face
+greedy generation, the model chat template, and `max_new_tokens=2048`.
+
+| Stage | Official greedy | JSON | YAML |
+|---|---:|---:|---:|
+| Base instruct | 543/2000 (**27.15%**) | 36.7% | 17.6% |
+| GRPO, 100 steps (C0) | 830/2000 (**41.50%**) | 44.6% | 38.4% |
+| Uniform continuation, +50 steps (U1) | 1066/2000 (**53.30%**) | 57.5% | 49.1% |
+| Adaptive continuation, +50 steps (A1) | 1066/2000 (**53.30%**) | 55.3% | 51.3% |
+
+Both continuations start from C0 with a fresh LoRA and optimizer, use the
+same official-shaped three-part reward, G=8, decoder, and 1,600 fresh
+completions. U1 samples a frozen train pool uniformly. A1 uses a frozen
+sampling heuristic that favors bins with observed mixed success and
+non-collapsed reward-derived advantage.
+
+On a frozen procedural transfer set with train-disjoint families, C0 scored
+145/256 and both U1 and A1 scored 150/256. A later matched U2 continuation
+scored 120/256 on a different frozen closed-schema screen, below U1's
+153/256; it was not promoted to the official 2,000-prompt evaluation.
+
+**Scope.** These are one-seed results, not an algorithm paper or a claim that
+RL is better than a matched SFT baseline. The adaptive sampler tied uniform.
+The transfer results are much smaller than the official-exam lift. We do not
+claim broad schema generalization, a new RL method, or a validated composition
+curriculum.
+
+The current campaign is closed. Further work requires a new independently
+motivated task, frozen evaluation, a strong supervised baseline, and a
+predeclared comparison that can establish whether RL changes the outcome.
 
 ## Results (LFM2.5-350M, 1 seed)
 
